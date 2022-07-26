@@ -3,19 +3,14 @@ function parseCount(value) {
     if (isNaN(parseValue)) {
         throw new Error("Невалидное значение");
     }
-    console.log(parseValue);
     return parseValue;
 }
 
 function validateCount(value) {
     try {
-        if (!isNaN(value)) {
-            let val = parseCount(value);
-            return val; 
-        }
-    }
-    catch (error) { 
-        console.log(error); 
+        return val = parseCount(value); 
+    } catch (error) { 
+        return error; 
     }     
 }
 
@@ -29,35 +24,40 @@ class Triangle {
     } 
 
     constructor (a, b, c) {
-        if (this.checkValidity(a, b, c) === true) {
-            this.a = a;
-            this.b = b;
-            this.c = c;
+        if (!this.checkValidity(a, b, c)) {
+            throw new Error("Треугольник с такими сторонами не существует");
         } 
-        else throw new Error("Треугольник с такими сторонами не существует");
+        this.a = a;
+        this.b = b;
+        this.c = c;
     }
 
     getPerimeter() {
-        this.perimeter = (this.a + this.b + this.c) ;
-        return this.perimeter;
+        return this.a + this.b + this.c;
     }
 
     getArea () {
-        let halfPerimeter = this.perimeter / 2
+        let halfPerimeter = this.getPerimeter() / 2
         this.area = Math.sqrt(halfPerimeter * ((halfPerimeter - this.a) * (halfPerimeter - this.b) * (halfPerimeter - this.c))).toFixed(3);
         return parseFloat(this.area);
     }
 }
 
 function getTriangle(a, b, c) {
-    let trngl = new Triangle (a, b, c);
+    let trngl = null;
     try {
-        if (trngl.checkValidity() === true) {
-            return trngl;
-        }
+        a = parseCount(a);
+        b = parseCount(b);
+        c = parseCount(c);
+    return (trngl = new Triangle(a, b, c));
     } catch (error) {
-        trngl.getPerimeter();
-        trngl.getArea(); 
-        throw new Error("Ошибка! Треугольник не существует");  
-    }
+        return {
+            getPerimeter() {
+                return 'Ошибка! Треугольник не существует';
+            },
+            getArea() {
+                return 'Ошибка! Треугольник не существует';   
+            }
+        };
+    }   
 }
