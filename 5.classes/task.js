@@ -1,10 +1,10 @@
 class PrintEditionItem {
-    type = null;
     constructor (name, releaseDate, pagesCount){
         this.name = name;
         this.releaseDate = releaseDate;
         this.pagesCount = pagesCount;
         this.state = 100;
+        this.type = null;
     } 
 
     fix() {
@@ -12,15 +12,7 @@ class PrintEditionItem {
     }
 
     set state(newState) {
-        if (newState <= 0) {
-            this._state = 0;
-        }
-        else if (newState >= 100) {
-            this._state = 100;
-        }
-        else {
-            this._state = newState;
-        }
+        this._state = newState <= 0 ? 0 : newState >= 100 ? 100 : newState;
     }
 
     get state() {
@@ -29,16 +21,16 @@ class PrintEditionItem {
 }
 
 class Magazine extends PrintEditionItem {
-    type = "magazine";
     constructor (name, releaseDate, pagesCount){
         super(name, releaseDate, pagesCount);
+        this.type = 'magazine';
     }
 }
 
 class Book extends PrintEditionItem {
-    type = "book";
     constructor (author, name, releaseDate, pagesCount){
         super(name, releaseDate, pagesCount);
+        this.type = 'book';
         this.author = author;
     }
 }
@@ -47,20 +39,21 @@ class NovelBook extends Book {
     type = "novel";
     constructor (author, name, releaseDate, pagesCount){
         super(author, name, releaseDate, pagesCount);
+        this.type = 'novel';
     }
 }
 
 class FantasticBook extends Book {
-    type = "fantastic";
     constructor (author, name, releaseDate, pagesCount){
         super(author, name, releaseDate, pagesCount);
+        this.type = 'fantastic';
     }
 }
 
 class DetectiveBook extends Book {
-    type = "detective";
     constructor (author, name, releaseDate, pagesCount){
         super(author, name, releaseDate, pagesCount);
+        this.type = 'detective';
     }
 }
 
@@ -71,90 +64,91 @@ class Library {
     }
 
     addBook(object) {
-        if (object.state >= 30) {
-            this.books.push(object);
-        } else {
-        return;
-        }
+        object.state > 30 && this.books.push(object);
     }
 
     findBookBy(type, value) {
-        let findBook = this.books.find(item => item[type] === value);
-        if(findBook !== undefined) {
-        return findBook;
-        } else {
-        return null;
-        }
+        return this.books.find((item) => item[type] === value) || null;
     }
 
     giveBookByName(bookName) {
         let indexBook = this.books.findIndex(item => item.name === bookName);
-        if(indexBook !== -1) {
-            let giveBook = this.books[indexBook];
-            this.books.splice(indexBook, 1);
-        return giveBook;
-        } else {
-        return null;
-        }
+        return indexBook < 0 ? null : this.books.splice(indexBook, 1)[0];
     }
 }
 
 class Student {
-    constructor (name) {
+    constructor (name, gender, age) {
         this.name = name;
+        this.gender = gender;
+        this.age = age;
+        this.ratingSet = [];
+        this.excluded = false;
     }
+
+    addMark(rating, subjectName) {
+        let findObj = this.ratingSet.find((item) => item.subject === subjectName);
+        rating = parseInt(rating, 10);
     
-    setSubject(subjectName) {
-        this.subject = subjectName;
-    }
-
-    addMark(mark, subjectName) {
-        let obj = {
-            "mark": mark,
-            "subject": subjectName
+        if (isNaN(rating) || rating < 1 || rating > 5) {
+          console.error('Ошибка, оценка должна быть числом от 1 до 5');
+          return false;
         }
-        if (mark > 0 && mark < 6){
-            if (this.marks === undefined) {
-                var arr = [];
-                arr.unshift(obj);
-                this.marks = arr;
-              }
-              else {
-                this.marks.splice(this.marks.length, 0, obj);
-              }
-        }
-        else {
-           console.log("Ошибка, оценка должна быть числом от 1 до 5"); 
-        }
-    }
-
-    getAverageBySubject(value) {
-        let mrks= [];
-        let index = this.marks.findIndex(item => item.subject === value);
-        if (index !== -1 ) {
-            for (let i = 0; i < this.marks.length; i++) {
-                mrks.push(this.marks[i].mark);
-            }
-           let avg = mrks.reduce((a, b) => a + b, 0) / mrks.length;
-           return avg;  
-        }
-        else {
-            console.log("Такого предмета не найдено!");
-        }
-    }
     
-    getAverage() {
-        let mrks= [];
-        for (let i = 0; i < this.marks.length; i++) {
-            mrks.push(this.marks[i].mark);
+        if (!this.ratingSet.length || !findObj) {
+          this.ratingSet.push({ marks: [rating], subject: subjectName });
+        } else if (findObj) {
+          findObj.marks.push(rating);
         }
-        let avg = mrks.reduce((a, b) => a + b, 0) / mrks.length;
-        return avg;
-    }
+        return true;
+      }
 
-    exclude(reason) {
-        delete this.subject;
-        delete this.marks;
+    addMarks(ratings, subjectName) {
+        let findObj = this.ratingSet.find((item) => item.subject === subjectName);
+        let isValid =
+          Array.isArray(ratings) &&
+          !ratings.some((item) => isNaN(parseInt(item)) || item < 1 || item > 5);
+    
+        if (!isValid) {
+          console.error('Ошибка, оценки в массиве должны быть числом от 1 до 5');
+          return false;
+        }
+    
+        if (!this.ratingSet.length || !findObj) {
+          this.ratingSet.push({ marks: [...ratings], subject: subjectName });
+        } else if (findObj) {
+          findObj.marks.push(...ratings);
+        }
+        return true;
+      }
+
+      getAverageBySubject(subjectName) {
+        let findObj = this.ratingSet.find((item) => item.subject === subjectName);
+        if (!findObj) {
+          console.error(`Несуществующий предмет ${subjectName}`);
+          return false;
+        }
+        return findObj.marks.reduce((acc, item) => (acc += item)) / findObj.marks.length;
+      }
+    
+      getAverage() {
+        if (!this.ratingSet.length) {
+          console.error('Вы еще не изучаете ни один предмет');
+          return false;
+        }
+        return (
+          this.ratingSet.reduce((acc, item) => {
+            return (acc += this.getAverageBySubject(item.subject));
+          }, 0) / this.ratingSet.length
+        );
+      }
+    
+      exclude(reason) {
+        if (excluded) {
+          console.error(`Студент уже отчислен. Причина ${this.excluded}`);
+        }
         this.excluded = reason;
-    }
+        this.ratingSet = [];
+        return true;
+      }
 }
